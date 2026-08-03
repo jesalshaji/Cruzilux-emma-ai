@@ -20,4 +20,4 @@
 
 10. Finish before expanding.
 
-11. Question the architecture before questioning the implementation.
+11. Question the architecture before questioning the implementation

@@ -14,4 +14,4 @@ Alternatives:
 - JSON configuration file
 
 Chosen because:
-Environment variables are the standard for deployments and cloud platforms.
+Environment variables are the standard for deployments and cloud platforms
