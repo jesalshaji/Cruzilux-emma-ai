@@ -1,4 +1,12 @@
 # Main entry point for Emma AI Backend Application
+from fastapi import FastAPI
 
-if __name__ == "__main__":
-    print("Starting Emma AI Backend Application...")
+app = FastAPI(title="Emma AI")
+
+
+@app.get("/")
+async def root():
+    return {
+        "status": "online",
+        "assistant": "Emma",
+    }
