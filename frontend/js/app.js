@@ -1,4 +1,11 @@
+import {
+    startRecording,
+    stopRecording,
+    recording
+} from "./audio.js";
+
 const sendButton = document.getElementById("sendButton");
+const micButton = document.getElementById("micButton");
 const input = document.getElementById("messageInput");
 const status = document.getElementById("status");
 const messages = document.getElementById("messages");
@@ -142,3 +149,48 @@ function scrollBottom() {
     messages.scrollTop = messages.scrollHeight;
 
 }
+
+// -------------------------
+// Microphone
+// -------------------------
+
+micButton.onclick = async () => {
+
+    try {
+
+        if (!recording()) {
+
+            await startRecording();
+
+            micButton.textContent = "⏹";
+
+
+        } else {
+
+            const audio = await stopRecording();
+
+micButton.textContent = "🎤 Speak";
+
+showTyping();
+
+if (socket && socket.readyState === WebSocket.OPEN) {
+
+    socket.send(audio);
+
+} else {
+
+    addEmmaMessage("❌ Emma is offline.");
+
+}
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        addEmmaMessage("❌ Unable to access microphone.");
+
+    }
+
+};

@@ -18,3 +18,26 @@ Emma AI is an AI automation bot platform designed to support multiple business p
   - `app/business`: Logic handling domain-specific business profiles.
   - `app/utils`: Shared helper functions.
 - **Business Profiles**: Configurations, prompts, and knowledge bases per business demo.
+
+
+
+
+#               Browser
+
+         💬 Text     🎤 Voice
+               \      /
+                \    /
+                 \  /
+                  \/
+        /ws/conversation
+                  │
+                  ▼
+        ConversationManager
+          /               \
+   Text Processor     Voice Processor
+          \               /
+           \             /
+            └── Gemini ──┘
+
+
+            
