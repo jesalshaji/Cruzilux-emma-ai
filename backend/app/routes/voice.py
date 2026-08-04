@@ -1,4 +1,4 @@
-from fastapi import APIRouter, WebSocket
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.core.conversation_manager import ConversationManager
 
@@ -13,19 +13,29 @@ async def voice_socket(websocket: WebSocket):
 
     print("🟢 Browser Connected")
 
-    await websocket.send_text(
-        "Connected to Emma!"
-    )
+    await websocket.send_text("Connected to Emma!")
 
     try:
         while True:
+            # Receive message from browser
             message = await websocket.receive_text()
 
-            print(f"Customer: {message}")
+            print(f"👤 Customer: {message}")
 
-            await websocket.send_text(
-                f"Emma received: {message}"
-            )
+            # Ask Emma
+            reply = await manager.process_message(message)
 
-    except Exception:
+            print(f"🤖 Emma: {reply}")
+
+            # Send reply back to browser
+            await websocket.send_text(reply)
+
+    except WebSocketDisconnect:
         print("🔴 Browser Disconnected")
+
+    except Exception as e:
+        print(f"❌ Error: {e}")
+
+        await websocket.send_text(
+            "Sorry, something went wrong."
+        )

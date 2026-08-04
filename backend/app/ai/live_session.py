@@ -18,15 +18,14 @@ class LiveSession:
         self.prompt_manager = PromptManager()
 
         self.config = types.LiveConnectConfig(
-            response_modalities=["AUDIO"],
+            response_modalities=["TEXT"],
             system_instruction=self.prompt_manager.get_system_prompt(),
         )
 
-    async def connect(self):
+    def connect(self):
         """
-        Open a Live session with Gemini.
+        Returns the Gemini Live connection context manager.
         """
-
         return self.client.aio.live.connect(
             model=settings.LIVE_MODEL,
             config=self.config,

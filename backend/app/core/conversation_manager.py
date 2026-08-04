@@ -1,25 +1,26 @@
-from app.ai.live_session import LiveSession
+from app.ai.gemini_service import GeminiService
+from app.core.prompt_manager import PromptManager
 
 
 class ConversationManager:
     """
-    Manages a single conversation between one customer and Emma.
+    Manages one text conversation with Emma.
     """
 
     def __init__(self):
-        self.live_session = LiveSession()
-        self.session = None
+        self.gemini = GeminiService()
+        self.prompt_manager = PromptManager()
 
-    async def start(self):
+    async def process_message(self, message: str) -> str:
         """
-        Start a new Gemini Live session.
+        Send a text message to Gemini and return the reply.
         """
-        self.session = await self.live_session.connect()
 
-    async def stop(self):
-        """
-        Close the current Gemini Live session.
-        """
-        if self.session:
-            await self.session.close()
-            self.session = None
+        system_prompt = self.prompt_manager.get_system_prompt()
+
+        reply = self.gemini.chat(
+            system_prompt=system_prompt,
+            user_message=message,
+        )
+
+        return reply

@@ -12,11 +12,28 @@ class Settings:
     def __init__(self):
         self.GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+        # Gemini model for text conversations
+        self.CHAT_MODEL = os.getenv(
+            "CHAT_MODEL",
+            "gemini-flash-latest",
+        )
+
+        # Gemini Live model for voice conversations
         self.LIVE_MODEL = os.getenv(
-    "LIVE_MODEL",
-    "gemini-3.1-flash-live-preview",
-)
-        
+            "LIVE_MODEL",
+            "gemini-3.1-flash-live-preview",
+        )
+
+        self.DEFAULT_LANGUAGE = os.getenv(
+            "DEFAULT_LANGUAGE",
+            "auto",
+        )
+
+        self.DEFAULT_VOICE = os.getenv(
+            "DEFAULT_VOICE",
+            "Aoede",
+        )
+
         if not self.GEMINI_API_KEY:
             raise ValueError(
                 "GEMINI_API_KEY is missing in backend/.env"
