@@ -16,3 +16,7 @@ This document outlines the planned features, milestones, and development timelin
 - [ ] REST API routes for chat and management
 - [ ] Frontend user interface
 - [ ] Authentication & session handling
+
+
+## Date : AUG-04 
+- Emma connect with browser give response 

@@ -1,31 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Emma AI</title>
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/styles.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
-    <div class="container">
+    <div class="app">
 
-        <h1>Emma AI</h1>
+        <!-- Header -->
 
-        <div id="status">
-            🔴 Disconnected
+        <header class="header">
+
+            <div>
+
+                <h1>🤖 Emma</h1>
+
+                <p>AI Receptionist • Powered by CruziLux</p>
+
+            </div>
+
+            <div class="status">
+
+                <span class="status-dot"></span>
+
+                <span id="status">Connecting...</span>
+
+            </div>
+
+        </header>
+
+        <!-- Chat -->
+
+        <main id="messages" class="messages">
+
+        </main>
+
+        <!-- Typing -->
+
+        <div id="typing" class="typing hidden">
+
+            🤖 Emma is thinking...
+
         </div>
 
-        <button id="connectButton">
-            Connect to Emma
-        </button>
+        <!-- Input -->
 
-        <div id="messages"></div>
+        <footer class="chat-input">
+
+            <input
+                id="messageInput"
+                type="text"
+                placeholder="Type your message..."
+                autocomplete="off"
+            >
+
+            <button
+                id="micButton"
+                title="Voice coming soon"
+                disabled>
+
+                🎤
+
+            </button>
+
+            <button id="sendButton">
+
+                Send
+
+            </button>
+
+        </footer>
 
     </div>
 
-    <script src="app.js"></script>
+    <script type="module" src="js/app.js"></script>
 
 </body>
+
 </html>

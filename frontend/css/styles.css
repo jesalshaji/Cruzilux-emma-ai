@@ -1,0 +1,286 @@
+/* =========================================
+   Emma Client v1
+   Powered by CruziLux
+========================================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:"Inter",sans-serif;
+    background:#F8FAFC;
+    color:#0F172A;
+}
+
+.app{
+
+    width:900px;
+    height:90vh;
+
+    margin:30px auto;
+
+    background:#FFFFFF;
+
+    border-radius:20px;
+
+    box-shadow:
+        0 20px 45px rgba(15,23,42,.08);
+
+    display:flex;
+    flex-direction:column;
+
+    overflow:hidden;
+
+}
+
+/* ===========================
+   Header
+=========================== */
+
+.header{
+
+    height:90px;
+
+    padding:20px 30px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    border-bottom:1px solid #E2E8F0;
+
+    background:white;
+
+}
+
+.header h1{
+
+    font-size:30px;
+    font-weight:700;
+
+}
+
+.header p{
+
+    color:#64748B;
+    margin-top:5px;
+
+}
+
+.status{
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    font-weight:600;
+
+}
+
+.status-dot{
+
+    width:12px;
+    height:12px;
+
+    border-radius:50%;
+
+    background:#22C55E;
+
+    box-shadow:
+        0 0 12px #22C55E;
+
+}
+
+/* ===========================
+   Chat Area
+=========================== */
+
+.messages{
+
+    flex:1;
+
+    padding:30px;
+
+    overflow-y:auto;
+
+    background:#F8FAFC;
+
+}
+
+/* Emma bubble */
+
+.emma-message{
+
+    max-width:70%;
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:18px;
+
+    margin-bottom:20px;
+
+    box-shadow:
+        0 5px 15px rgba(0,0,0,.05);
+
+}
+
+/* User bubble */
+
+.user-message{
+
+    max-width:70%;
+
+    background:#2563EB;
+
+    color:white;
+
+    border-radius:18px;
+
+    padding:18px;
+
+    margin-left:auto;
+
+    margin-bottom:20px;
+
+    box-shadow:
+        0 5px 15px rgba(37,99,235,.25);
+
+}
+
+.user-message strong,
+.emma-message strong{
+
+    display:block;
+
+    margin-bottom:8px;
+
+}
+
+/* ===========================
+   Typing
+=========================== */
+
+.typing{
+
+    padding:12px 30px;
+
+    color:#64748B;
+
+    font-style:italic;
+
+}
+
+.hidden{
+
+    display:none;
+
+}
+
+/* ===========================
+   Input
+=========================== */
+
+.chat-input{
+
+    padding:20px;
+
+    border-top:1px solid #E2E8F0;
+
+    display:flex;
+
+    gap:15px;
+
+    background:white;
+
+}
+
+.chat-input input{
+
+    flex:1;
+
+    border:1px solid #CBD5E1;
+
+    border-radius:12px;
+
+    padding:15px;
+
+    font-size:16px;
+
+    outline:none;
+
+    transition:.25s;
+
+}
+
+.chat-input input:focus{
+
+    border-color:#2563EB;
+
+    box-shadow:
+        0 0 0 4px rgba(37,99,235,.15);
+
+}
+
+.chat-input button{
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:0 22px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+#micButton{
+
+    background:#F1F5F9;
+
+    color:#64748B;
+
+}
+
+#sendButton{
+
+    background:#2563EB;
+
+    color:white;
+
+}
+
+#sendButton:hover{
+
+    background:#1D4ED8;
+
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media(max-width:900px){
+
+    .app{
+
+        width:100%;
+        height:100vh;
+        margin:0;
+        border-radius:0;
+
+    }
+
+}
