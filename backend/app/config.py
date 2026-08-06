@@ -24,6 +24,12 @@ class Settings:
             "gemini-3.1-flash-live-preview",
         )
 
+                # Gemini Text-to-Speech model
+        self.TTS_MODEL = os.getenv(
+            "TTS_MODEL",
+            "gemini-2.5-flash-preview-tts",
+        )
+
         self.DEFAULT_LANGUAGE = os.getenv(
             "DEFAULT_LANGUAGE",
             "auto",
