@@ -4,16 +4,21 @@ import {
     recording
 } from "./audio.js";
 
+import {
+    addUserMessage,
+    showTyping
+} from "./ui.js";
+
+import {
+    connect,
+    sendMessage,
+    sendAudio
+} from "./websocket.js";
+
 const sendButton = document.getElementById("sendButton");
 const micButton = document.getElementById("micButton");
 const input = document.getElementById("messageInput");
-const status = document.getElementById("status");
-const messages = document.getElementById("messages");
-const typing = document.getElementById("typing");
 
-let socket = null;
-
-// Automatically connect when the page loads
 window.onload = () => {
 
     connect();
@@ -23,130 +28,34 @@ window.onload = () => {
 };
 
 // -------------------------
-// WebSocket
+// Send Text
 // -------------------------
 
-function connect() {
-
-    socket = new WebSocket("ws://127.0.0.1:8000/ws/voice");
-
-    socket.onopen = () => {
-
-        status.textContent = "🟢 Emma Online";
-
-        addEmmaMessage(
-            "Hello! I'm Emma. How can I help you today?"
-        );
-
-    };
-
-    socket.onmessage = (event) => {
-
-        hideTyping();
-
-        addEmmaMessage(event.data);
-
-    };
-
-    socket.onclose = () => {
-
-        status.textContent = "🔴 Offline";
-
-    };
-
-    socket.onerror = () => {
-
-        hideTyping();
-
-        addEmmaMessage(
-            "I'm having trouble connecting right now."
-        );
-
-    };
-
-}
-
-// -------------------------
-// Send Message
-// -------------------------
-
-sendButton.onclick = sendMessage;
+sendButton.onclick = send;
 
 input.addEventListener("keypress", (event) => {
 
     if (event.key === "Enter") {
 
-        sendMessage();
+        send();
 
     }
 
 });
 
-function sendMessage() {
+function send() {
 
-    if (!socket || socket.readyState !== WebSocket.OPEN)
-        return;
+    const message = input.value.trim();
 
-    const text = input.value.trim();
+    if (message === "") return;
 
-    if (text === "")
-        return;
-
-    addUserMessage(text);
+    addUserMessage(message);
 
     showTyping();
 
-    socket.send(text);
+    sendMessage(message);
 
     input.value = "";
-
-}
-
-// -------------------------
-// UI
-// -------------------------
-
-function addUserMessage(text) {
-
-    messages.innerHTML += `
-        <div class="user-message">
-            <strong>👤 You</strong>
-            ${text}
-        </div>
-    `;
-
-    scrollBottom();
-
-}
-
-function addEmmaMessage(text) {
-
-    messages.innerHTML += `
-        <div class="emma-message">
-            <strong>🤖 Emma</strong>
-            ${text}
-        </div>
-    `;
-
-    scrollBottom();
-
-}
-
-function showTyping() {
-
-    typing.classList.remove("hidden");
-
-}
-
-function hideTyping() {
-
-    typing.classList.add("hidden");
-
-}
-
-function scrollBottom() {
-
-    messages.scrollTop = messages.scrollHeight;
 
 }
 
@@ -164,32 +73,25 @@ micButton.onclick = async () => {
 
             micButton.textContent = "⏹";
 
+        }
 
-        } else {
+        else {
 
             const audio = await stopRecording();
 
-micButton.textContent = "🎤 Speak";
+            micButton.textContent = "🎤";
 
-showTyping();
+            showTyping();
 
-if (socket && socket.readyState === WebSocket.OPEN) {
-
-    socket.send(audio);
-
-} else {
-
-    addEmmaMessage("❌ Emma is offline.");
-
-}
+            sendAudio(audio);
 
         }
 
-    } catch (error) {
+    }
 
-        console.error(error);
+    catch (err) {
 
-        addEmmaMessage("❌ Unable to access microphone.");
+        console.error(err);
 
     }
 

@@ -20,3 +20,48 @@ This document outlines the planned features, milestones, and development timelin
 
 ## Date : AUG-04 
 - Emma connect with browser give response 
+
+
+## v0.1
+
+Chat
+
+Voice
+
+Memory
+
+Demo
+
+----------------
+
+## v0.2
+
+Streaming
+
+Faster voice
+
+German
+
+Knowledge
+
+----------------
+
+## v1.0
+
+Multi-company
+
+Dashboard
+
+Marketplace
+
+CRM
+
+API
+
+Platform
+
+---
+
+> **Build with purpose. Design for people. Scale with principles.**
+
+**CruziLux AI Platform**

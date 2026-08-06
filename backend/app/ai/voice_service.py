@@ -1,4 +1,5 @@
 import base64
+import io
 import wave
 
 from google import genai
@@ -14,23 +15,26 @@ class VoiceService:
             api_key=settings.GEMINI_API_KEY
         )
 
-    def _save_wave(
+    def _create_wave_bytes(
         self,
-        filename: str,
         pcm_data: bytes,
         channels: int = 1,
         sample_rate: int = 24000,
         sample_width: int = 2,
-    ):
+    ) -> bytes:
 
-        with wave.open(filename, "wb") as wav_file:
+        buffer = io.BytesIO()
+
+        with wave.open(buffer, "wb") as wav_file:
 
             wav_file.setnchannels(channels)
             wav_file.setsampwidth(sample_width)
             wav_file.setframerate(sample_rate)
             wav_file.writeframes(pcm_data)
 
-    def speak(self, text: str):
+        return buffer.getvalue()
+
+    def speak(self, text: str) -> bytes:
 
         interaction = self.client.interactions.create(
             model=settings.TTS_MODEL,
@@ -51,9 +55,8 @@ class VoiceService:
             interaction.output_audio.data
         )
 
-        self._save_wave(
-            "test.wav",
-            pcm_audio,
+        wav_bytes = self._create_wave_bytes(
+            pcm_audio
         )
 
-        return "test.wav"
+        return wav_bytes

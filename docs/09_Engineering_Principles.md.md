@@ -21,3 +21,25 @@
 10. Finish before expanding.
 
 11. Question the architecture before questioning the implementation
+
+12. Readable code over clever code.
+
+13. Reusable modules.
+
+14. Configuration over hardcoding.
+
+15. Single responsibility.
+
+16. Documentation before complexity.
+
+17. Measure before optimization.
+
+18. One feature at a time.
+
+19. No duplicated code.
+
+---
+
+> **Build with purpose. Design for people. Scale with principles.**
+
+**CruziLux AI Platform**

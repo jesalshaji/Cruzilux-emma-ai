@@ -40,4 +40,8 @@ Emma AI is an AI automation bot platform designed to support multiple business p
             └── Gemini ──┘
 
 
-            
+            ---
+
+> **Build with purpose. Design for people. Scale with principles.**
+
+**CruziLux AI Platform**

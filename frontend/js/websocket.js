@@ -1,43 +1,129 @@
 import {
-    addUserMessage
+    addEmmaMessage,
+    hideTyping,
+    setStatus
 } from "./ui.js";
 
-import {
-    connect,
-    sendMessage
-} from "./websocket.js";
+let socket = null;
 
-const input = document.getElementById("messageInput");
-const sendButton = document.getElementById("sendButton");
+export function connect() {
 
-window.onload = () => {
+    socket = new WebSocket(
+        "ws://127.0.0.1:8000/ws/voice"
+    );
 
-    connect();
+    socket.binaryType = "arraybuffer";
 
-    input.focus();
+    setStatus("🟡 Connecting...");
 
-};
+    socket.onopen = () => {
 
-sendButton.onclick = send;
+        setStatus("🟢 Emma Online");
 
-input.addEventListener("keypress", (event) => {
+        addEmmaMessage(
+            "Hello! I'm Emma. How can I help you today?"
+        );
 
-    if (event.key === "Enter")
-        send();
+    };
 
-});
+        socket.onmessage = async (event) => {
 
-function send() {
+        hideTyping();
 
-    const message = input.value.trim();
+        // JSON message
+        if (typeof event.data === "string") {
 
-    if (message === "")
-        return;
+            const data = JSON.parse(event.data);
 
-    addUserMessage(message);
+            if (data.type === "text") {
 
-    sendMessage(message);
+                addEmmaMessage(data.message);
 
-    input.value = "";
+            }
+
+            else if (data.type === "error") {
+
+                addEmmaMessage(data.message);
+
+            }
+
+        }
+
+        // Binary Audio
+        else {
+
+            const blob = new Blob(
+                [event.data],
+                {
+                    type: "audio/wav"
+                }
+            );
+
+            const url =
+                URL.createObjectURL(blob);
+
+            const audio =
+                new Audio(url);
+
+            try {
+
+                await audio.play();
+
+            }
+
+            catch (err) {
+
+                console.error(err);
+
+            }
+
+            audio.onended = () => {
+
+                URL.revokeObjectURL(url);
+
+            };
+
+        }
+
+    };
+
+        socket.onclose = () => {
+
+        setStatus("🔴 Emma Offline");
+
+    };
+
+    socket.onerror = () => {
+
+        setStatus("🔴 Connection Error");
+
+    };
 
 }
+
+export function sendMessage(message) {
+
+    if (
+        socket &&
+        socket.readyState === WebSocket.OPEN
+    ) {
+
+        socket.send(message);
+
+    }
+
+}
+
+export function sendAudio(audioBlob) {
+
+    if (
+        socket &&
+        socket.readyState === WebSocket.OPEN
+    ) {
+
+        socket.send(audioBlob);
+
+    }
+
+}
+

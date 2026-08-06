@@ -9,3 +9,20 @@
 ## Backlog
 - [ ] Add unit tests for routes and services
 - [ ] Implement rate limiting and authentication
+
+
+□ Improve TTS speed
+
+□ Add streaming
+
+□ Build Emma personality
+
+□ Build German support
+
+□ Improve UI animations
+
+---
+
+> **Build with purpose. Design for people. Scale with principles.**
+
+**CruziLux AI Platform**
