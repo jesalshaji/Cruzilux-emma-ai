@@ -1,24 +1,167 @@
 import {
     addEmmaMessage,
+    addBookingConfirmation,
     hideTyping,
     setStatus
 } from "./ui.js";
 
+
 let socket = null;
+
+let audioContext = null;
+let nextAudioTime = 0;
+let audioStarted = false;
+
+
+// ============================================================
+// AUDIO SETUP
+// ============================================================
+
+function getAudioContext() {
+
+    if (!audioContext) {
+
+        audioContext = new AudioContext({
+            sampleRate: 24000
+        });
+
+    }
+
+    return audioContext;
+}
+
+
+// ============================================================
+// PLAY PCM16 AUDIO CHUNK
+// ============================================================
+
+async function playPCMChunk(arrayBuffer) {
+
+    const context =
+        getAudioContext();
+
+
+    if (context.state === "suspended") {
+
+        await context.resume();
+
+    }
+
+
+    const pcm =
+        new Int16Array(
+            arrayBuffer
+        );
+
+
+    const audioBuffer =
+        context.createBuffer(
+            1,
+            pcm.length,
+            24000
+        );
+
+
+    const channelData =
+        audioBuffer.getChannelData(0);
+
+
+    for (
+        let i = 0;
+        i < pcm.length;
+        i++
+    ) {
+
+        channelData[i] =
+            pcm[i] / 32768;
+
+    }
+
+
+    const source =
+        context.createBufferSource();
+
+
+    source.buffer =
+        audioBuffer;
+
+
+    source.connect(
+        context.destination
+    );
+
+
+    const now =
+        context.currentTime;
+
+
+    if (nextAudioTime < now) {
+
+        nextAudioTime = now;
+
+    }
+
+
+    source.start(
+        nextAudioTime
+    );
+
+
+    nextAudioTime +=
+        audioBuffer.duration;
+
+
+    if (!audioStarted) {
+
+        audioStarted = true;
+
+        console.log(
+            "🔊 Emma started speaking"
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// CONNECT
+// ============================================================
 
 export function connect() {
 
-    socket = new WebSocket(
-        "ws://127.0.0.1:8000/ws/voice"
+    socket =
+        new WebSocket(
+            "ws://127.0.0.1:8000/ws/voice"
+        );
+
+
+    socket.binaryType =
+        "arraybuffer";
+
+
+    setStatus(
+        "🟡 Connecting..."
     );
 
-    socket.binaryType = "arraybuffer";
 
-    setStatus("🟡 Connecting...");
+    // ========================================================
+    // OPEN
+    // ========================================================
 
-    socket.onopen = () => {
+    socket.onopen = async () => {
 
-        setStatus("🟢 Emma Online");
+        setStatus(
+            "🟢 Emma Online"
+        );
+
+
+        /*
+         * Temporary greeting.
+         *
+         * Later we can make this greeting
+         * come through Emma's actual TTS.
+         */
 
         addEmmaMessage(
             "Hello! I'm Emma. How can I help you today?"
@@ -26,104 +169,258 @@ export function connect() {
 
     };
 
-        socket.onmessage = async (event) => {
 
-        hideTyping();
+    // ========================================================
+    // MESSAGE
+    // ========================================================
 
-        // JSON message
-        if (typeof event.data === "string") {
+    socket.onmessage =
+        async (event) => {
 
-            const data = JSON.parse(event.data);
+            hideTyping();
 
-            if (data.type === "text") {
 
-                addEmmaMessage(data.message);
+            // ==================================================
+            // JSON MESSAGE
+            // ==================================================
 
-            }
+            if (
+                typeof event.data === "string"
+            ) {
 
-            else if (data.type === "error") {
+                let data;
 
-                addEmmaMessage(data.message);
 
-            }
+                try {
 
-        }
+                    data =
+                        JSON.parse(
+                            event.data
+                        );
 
-        // Binary Audio
-        else {
-
-            const blob = new Blob(
-                [event.data],
-                {
-                    type: "audio/wav"
                 }
+
+                catch (error) {
+
+                    console.error(
+                        "❌ Invalid JSON from server:",
+                        error
+                    );
+
+                    return;
+
+                }
+
+
+                // ==============================================
+                // EMMA TEXT
+                // ==============================================
+
+                if (
+                    data.type === "text"
+                ) {
+
+                    addEmmaMessage(
+                        data.message
+                    );
+
+                }
+
+
+                // ==============================================
+                // DEMO BOOKING CONFIRMATION
+                // ==============================================
+
+                else if (
+                    data.type ===
+                    "booking_confirmed"
+                ) {
+
+                    console.log(
+                        "📋 Demo booking confirmed:",
+                        data.appointment
+                    );
+
+
+                    /*
+                     * The UI owns the booking card.
+                     *
+                     * websocket.js only receives
+                     * the event and passes the
+                     * appointment data to ui.js.
+                     */
+
+                    addBookingConfirmation(
+                        data.appointment
+                    );
+
+                }
+
+
+                // ==============================================
+                // ERROR
+                // ==============================================
+
+                else if (
+                    data.type === "error"
+                ) {
+
+                    addEmmaMessage(
+                        data.message
+                    );
+
+
+                    setStatus(
+                        "🟠 Emma temporarily unavailable"
+                    );
+
+                }
+
+
+                // ==============================================
+                // UNKNOWN JSON EVENT
+                // ==============================================
+
+                else {
+
+                    console.log(
+                        "ℹ️ Unknown server event:",
+                        data
+                    );
+
+                }
+
+            }
+
+
+            // ==================================================
+            // PCM AUDIO
+            // ==================================================
+
+            else {
+
+                try {
+
+                    await playPCMChunk(
+                        event.data
+                    );
+
+                }
+
+                catch (error) {
+
+                    console.error(
+                        "❌ Audio playback error:",
+                        error
+                    );
+
+                }
+
+            }
+
+        };
+
+
+    // ========================================================
+    // CLOSE
+    // ========================================================
+
+    socket.onclose =
+        (event) => {
+
+            console.log(
+                "🔴 WebSocket closed:",
+                event.code,
+                event.reason
             );
 
-            const url =
-                URL.createObjectURL(blob);
 
-            const audio =
-                new Audio(url);
+            setStatus(
+                "🔴 Emma Offline"
+            );
 
-            try {
+        };
 
-                await audio.play();
 
-            }
+    // ========================================================
+    // ERROR
+    // ========================================================
 
-            catch (err) {
+    socket.onerror =
+        (error) => {
 
-                console.error(err);
+            console.error(
+                "❌ WebSocket error:",
+                error
+            );
 
-            }
 
-            audio.onended = () => {
+            setStatus(
+                "🟠 Emma connection error"
+            );
 
-                URL.revokeObjectURL(url);
-
-            };
-
-        }
-
-    };
-
-        socket.onclose = () => {
-
-        setStatus("🔴 Emma Offline");
-
-    };
-
-    socket.onerror = () => {
-
-        setStatus("🔴 Connection Error");
-
-    };
+        };
 
 }
 
-export function sendMessage(message) {
+
+// ============================================================
+// SEND TEXT
+// ============================================================
+
+export function sendMessage(
+    message
+) {
 
     if (
         socket &&
-        socket.readyState === WebSocket.OPEN
+        socket.readyState ===
+        WebSocket.OPEN
     ) {
 
-        socket.send(message);
+        socket.send(
+            message
+        );
+
+    }
+
+    else {
+
+        console.warn(
+            "⚠ Emma is not connected."
+        );
 
     }
 
 }
 
-export function sendAudio(audioBlob) {
+
+// ============================================================
+// SEND AUDIO
+// ============================================================
+
+export function sendAudio(
+    audioBlob
+) {
 
     if (
         socket &&
-        socket.readyState === WebSocket.OPEN
+        socket.readyState ===
+        WebSocket.OPEN
     ) {
 
-        socket.send(audioBlob);
+        socket.send(
+            audioBlob
+        );
+
+    }
+
+    else {
+
+        console.warn(
+            "⚠ Emma is not connected."
+        );
 
     }
 
 }
-

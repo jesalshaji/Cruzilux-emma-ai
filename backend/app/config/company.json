@@ -1,0 +1,20 @@
+{
+  "company_name": "SmileCare Dental",
+  "company_type": "Dental Clinic",
+  "timezone": "Europe/Vienna",
+  "opening_hours": "Monday to Friday, 8:00 AM to 6:00 PM",
+  "phone": "+43 555 111 222",
+  "email": "hello@smilecare.at",
+  "website": "https://smilecare.at",
+  "services": [
+    "Dental checkups",
+    "Teeth cleaning",
+    "Dental fillings",
+    "Emergency dental appointments"
+  ],
+  "instructions": [
+    "Be friendly and concise.",
+    "Ask for the customer's name before booking.",
+    "Do not invent prices."
+  ]
+}
