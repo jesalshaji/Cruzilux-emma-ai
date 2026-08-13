@@ -219,20 +219,91 @@ class ConversationManager:
 
         return None
 
+        # ============================================================
+    # LANGUAGE DETECTION
+    # ============================================================
+
+    def _normalize_language_text(self, message: str) -> str:
+        """
+        Normalize speech/transcription text before language detection.
+
+        Important:
+        - Keeps German umlauts.
+        - Removes punctuation.
+        - Collapses whitespace.
+        """
+
+        text = (message or "").lower().strip()
+
+        text = re.sub(
+            r"[^a-zA-ZäöüÄÖÜß\s]",
+            " ",
+            text,
+        )
+
+        text = re.sub(
+            r"\s+",
+            " ",
+            text,
+        ).strip()
+
+        return text
+
+
     def _detect_message_language(self, message: str):
+        """
+        Detect the language of ordinary customer speech.
 
-        text = message.lower()
+        IMPORTANT:
+        This function NEVER changes Emma's language by itself.
 
-        german_words = [
+        It is only used as supporting information.
+
+        Explicit requests such as:
+            "switch to German"
+            "speak English"
+            "sprechen Sie Deutsch"
+
+        are handled separately by _detect_language_request().
+        """
+
+        text = self._normalize_language_text(message)
+
+        if not text:
+            return None
+
+        # --------------------------------------------------------
+        # Use REAL WORDS, not substring matching.
+        #
+        # This prevents words like:
+        # "this" -> accidentally matching "i"
+        # "with" -> accidentally matching "i"
+        # --------------------------------------------------------
+
+        words = set(text.split())
+
+        german_words = {
             "ich",
+            "mich",
+            "mir",
+            "mein",
+            "meine",
+            "meinen",
+            "meinem",
+            "meiner",
             "möchte",
             "mochte",
             "einen",
             "eine",
             "einem",
+            "einer",
+            "ein",
             "termin",
+            "termine",
             "morgen",
             "heute",
+            "gestern",
+            "übermorgen",
             "bitte",
             "danke",
             "und",
@@ -240,56 +311,105 @@ class ConversationManager:
             "für",
             "fuer",
             "haben",
+            "habe",
+            "hat",
             "können",
             "koennen",
+            "kann",
             "sprechen",
+            "spricht",
             "deutsch",
             "zahn",
+            "zähne",
+            "zaehne",
+            "zahnarzt",
+            "zahnreinigung",
             "reinigung",
             "haarschnitt",
+
+
             "bart",
+            "telefonnummer",
+
+            "nummer",
+            "email",
+            "uhr",
+            "wann",
+            "welche",
+            "welcher",
+            "welches",
             "mein",
             "meine",
-            "telefonnummer",
-            "email",
-        ]
 
-        english_words = [
+        }
+
+
+        english_words = {
             "i",
+            "me",
+
+            "my",
             "want",
             "would",
             "like",
             "book",
+
+            "booking",
             "appointment",
+            "appointments",
             "tomorrow",
             "today",
+            "yesterday",
             "please",
             "thank",
+            "thanks",
             "and",
             "or",
             "for",
             "have",
+            "has",
             "can",
+            "could",
             "speak",
             "english",
             "cleaning",
             "checkup",
+            "dental",
+            "dentist",
+            "teeth",
             "phone",
+            "number",
             "email",
-        ]
+            "time",
+            "when",
+            "what",
+            "which",
+        }
 
-        german_score = sum(
-            1 for word in german_words
-            if word in text
+        german_score = len(
+            words.intersection(german_words)
         )
 
-        english_score = sum(
-            1 for word in english_words
-            if word in text
+        english_score = len(
+            words.intersection(english_words)
         )
 
-        if german_score == 0 and english_score == 0:
+        # --------------------------------------------------------
+        # Not enough evidence
+        # --------------------------------------------------------
+
+        if (
+            german_score == 0
+            and english_score == 0
+        ):
             return None
+
+        # --------------------------------------------------------
+        # Require a meaningful difference.
+        #
+        # This prevents short / noisy speech from being treated
+        # as a language switch.
+        # --------------------------------------------------------
 
         if german_score > english_score:
             return "de"
@@ -298,6 +418,120 @@ class ConversationManager:
             return "en"
 
         return None
+
+
+    def _update_language(self, message: str):
+        """
+        Update Emma's conversation language.
+
+        RULE:
+
+        1. Explicit language request:
+           switch immediately.
+
+        2. Ordinary speech:
+           DO NOT switch Emma's established language.
+
+        3. If no language has been established yet:
+           use detected language.
+
+        This prevents noise, transcription errors, names,
+        appointment information, and mixed speech from
+        unexpectedly changing Emma's language.
+        """
+
+        # --------------------------------------------------------
+        # 1. EXPLICIT LANGUAGE REQUEST
+        # --------------------------------------------------------
+
+        explicit = self._detect_language_request(
+            message
+        )
+
+        if explicit:
+
+            previous_language = (
+                self.current_language
+            )
+
+            self.current_language = explicit
+
+            self.candidate_language = None
+            self.candidate_count = 0
+
+            if previous_language != explicit:
+
+                print(
+                    "🌍 Language switched: "
+                    f"{previous_language or 'none'} "
+                    f"→ {explicit}"
+                )
+
+            return explicit
+
+        # --------------------------------------------------------
+        # 2. DETECT ORDINARY MESSAGE LANGUAGE
+        # --------------------------------------------------------
+
+        detected = self._detect_message_language(
+            message
+        )
+
+        if detected is None:
+            return self.current_language
+
+        # --------------------------------------------------------
+        # 3. FIRST CUSTOMER MESSAGE
+        #
+        # If Emma has no established language yet,
+        # establish it from the first reasonably clear message.
+        # --------------------------------------------------------
+
+        if self.current_language is None:
+
+            self.current_language = detected
+
+            self.candidate_language = None
+            self.candidate_count = 0
+
+            print(
+                "🌍 Initial language detected: "
+                f"{detected}"
+            )
+
+            return detected
+
+        # --------------------------------------------------------
+        # 4. SAME LANGUAGE
+        # --------------------------------------------------------
+
+        if detected == self.current_language:
+
+            self.candidate_language = None
+            self.candidate_count = 0
+
+            return self.current_language
+
+        # --------------------------------------------------------
+        # 5. DIFFERENT LANGUAGE WITHOUT EXPLICIT REQUEST
+        # --------------------------------------------------------
+
+        if detected != self.candidate_language:
+
+            self.candidate_language = detected
+            self.candidate_count = 1
+
+        else:
+
+            self.candidate_count += 1
+
+        print(
+            "🌍 Possible language change detected "
+            f"({detected}), but no explicit switch. "
+            f"Keeping {self.current_language}."
+        )
+
+        return self.current_language
 
     def _update_language(self, message: str):
 
